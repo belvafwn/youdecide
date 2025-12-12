@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Romance - Interactive Horror Chat Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f0f23);
+            color: #e6e6e6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(139, 0, 139, 0.1);
+            border-radius: 15px;
+            border: 2px solid #8b008b;
+            box-shadow: 0 0 20px rgba(139, 0, 139, 0.3);
+        }
+
+        .game-title {
+            font-size: 2.5em;
+            color: #ff6b9d;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .game-subtitle {
+            font-size: 1.2em;
+            color: #b19cd9;
+            font-style: italic;
+        }
+
+        .setup-screen, .game-screen {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #444;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .setup-option {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(139, 0, 139, 0.1);
+            border-radius: 10px;
+            border: 1px solid #8b008b;
+        }
+
+        .setup-option h3 {
+            color: #ff6b9d;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #8b008b, #4b0082);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #ff6b9d, #8b008b);
+            border-color: #ff6b9d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .btn.selected {
+            background: linear-gradient(45deg, #ff6b9d, #8b008b);
+            border-color: #ff6b9d;
+        }
+
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            scrollbar-width: thin;
+            scrollbar-color: #8b008b #1a1a2e;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #8b008b;
+            border-radius: 4px;
+        }
+
+        .message {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 15px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.npc {
+            background: linear-gradient(135deg, rgba(139, 0, 139, 0.3), rgba(75, 0, 130, 0.3));
+            border-left: 4px solid #ff6b9d;
+            margin-right: 50px;
+        }
+
+        .message.player {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.2), rgba(139, 0, 139, 0.2));
+            border-right: 4px solid #b19cd9;
+            margin-left: 50px;
+            text-align: right;
+        }
+
+        .character-name {
+            font-weight: bold;
+            color: #ff6b9d;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .choice-btn {
+            padding: 15px;
+            background: rgba(139, 0, 139, 0.2);
+            border: 1px solid #8b008b;
+            border-radius: 10px;
+            color: #e6e6e6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: rgba(255, 107, 157, 0.3);
+            border-color: #ff6b9d;
+            transform: translateX(10px);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #b19cd9;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #ff6b9d;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .ending-screen {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            border: 2px solid #ff6b9d;
+            box-shadow: 0 0 30px rgba(255, 107, 157, 0.3);
+        }
+
+        .ending-title {
+            font-size: 2em;
+            color: #ff6b9d;
+            margin-bottom: 20px;
+        }
+
+        .ending-description {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #e6e6e6;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ff6b9d, #8b008b);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.5);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .typing {
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .typing::after {
+            content: "...";
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "..."; }
+            40% { content: ".."; }
+            60% { content: "."; }
+            80%, 100% { content: "..."; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1 class="game-title">Dark Romance</h1>
+            <p class="game-subtitle">An Interactive Horror Romance Experience</p>
+        </div>
+
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="setup-screen">
+            <div class="setup-option">
+                <h3 id="language-title">Choose Language / Pilih Bahasa:</h3>
+                <div class="option-buttons">
+                    <button class="btn" onclick="setLanguage('en')">English</button>
+                    <button class="btn" onclick="setLanguage('id')">Bahasa Indonesia</button>
+                </div>
+            </div>
+
+            <div class="setup-option">
+                <h3 id="gender-title">Choose Gender:</h3>
+                <div class="option-buttons">
+                    <button class="btn" onclick="setGender('female')" id="female-btn">Female</button>
+                    <button class="btn" onclick="setGender('male')" id="male-btn">Male</button>
+                </div>
+            </div>
+
+            <button class="btn" onclick="startGame()" id="start-btn" style="margin-top: 20px; opacity: 0.5;" disabled>Start Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="game-screen hidden">
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-label" id="trust-label">Trust</div>
+                    <div class="stat-value" id="trust-value">50</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label" id="fear-label">Fear</div>
+                    <div class="stat-value" id="fear-value">30</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label" id="romance-label">Romance</div>
+                    <div class="stat-value" id="romance-value">20</div>
+                </div>
+            </div>
+
+            <div id="chat-container" class="chat-container"></div>
+            <div id="choices" class="choices"></div>
+        </div>
+
+        <!-- Ending Screen -->
+        <div id="ending-screen" class="ending-screen hidden">
+            <h2 class="ending-title" id="ending-title"></h2>
+            <p class="ending-description" id="ending-description"></p>
+            <button class="restart-btn" onclick="restartGame()" id="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            language: '',
+            gender: '',
+            trust: 50,
+            fear: 30,
+            romance: 20,
+            currentScene: 0,
+            playerName: '',
+            choices: []
+        };
+
+        const texts = {
+            en: {
+                genderTitle: "Choose Gender:",
+                female: "Female",
+                male: "Male",
+                startGame: "Start Game",
+                trustLabel: "Trust",
+                fearLabel: "Fear",
+                romanceLabel: "Romance",
+                playerName: "You",
+                playAgain: "Play Again"
+            },
+            id: {
+                genderTitle: "Pilih Gender:",
+                female: "Wanita",
+                male: "Pria",
+                startGame: "Mulai Game",
+                trustLabel: "Kepercayaan",
+                fearLabel: "Ketakutan",
+                romanceLabel: "Romansa",
+                playerName: "Anda",
+                playAgain: "Main Lagi"
+            }
+        };
+
+        const gameScenes = {
+            en: [
+                {
+                    speaker: "???",
+                    message: "The old mansion creaks in the storm as you seek shelter. A pale figure appears in the shadows...",
+                    choices: [
+                        { text: "Approach cautiously", trust: 5, fear: 10, next: 1 },
+                        { text: "Call out to them", trust: 10, fear: 5, romance: 5, next: 2 },
+                        { text: "Try to leave immediately", trust: -5, fear: 15, next: 3 }
+                    ]
+                },
+                {
+                    speaker: "Mysterious Figure",
+                    message: "You step closer, and moonlight reveals a hauntingly beautiful person with crimson eyes. 'Lost, are we?' they whisper.",
+                    choices: [
+                        { text: "I'm just seeking shelter", trust: 5, next: 4 },
+                        { text: "Who are you?", fear: 5, romance: 5, next: 5 },
+                        { text: "Your eyes... they're not human", fear: 10, trust: -5, next: 6 }
+                    ]
+                },
+                {
+                    speaker: "Mysterious Figure", 
+                    message: "Your voice echoes in the darkness. 'Bold of you to announce yourself,' they say with a sad smile. 'I am Adrian. This is my home.'",
+                    choices: [
+                        { text: "Thank you for the shelter", trust: 10, romance: 5, next: 7 },
+                        { text: "Something feels wrong here", fear: 10, next: 8 },
+                        { text: "You seem lonely", romance: 10, trust: 5, next: 9 }
+                    ]
+                },
+                {
+                    speaker: "Adrian",
+                    message: "As you turn to leave, a cold hand gently touches your shoulder. 'The storm will kill you out there. Please, stay until dawn.'",
+                    choices: [
+                        { text: "Fine, but I don't trust you", trust: -5, fear: 5, next: 10 },
+                        { text: "Why do you care about a stranger?", romance: 5, next: 11 },
+                        { text: "Thank you for your kindness", trust: 10, romance: 5, next: 12 }
+                    ]
+                }
+            ],
+            id: [
+                {
+                    speaker: "???",
+                    message: "Mansion tua berderit dalam badai saat Anda mencari perlindungan. Sosok pucat muncul dalam bayang-bayang...",
+                    choices: [
+                        { text: "Mendekati dengan hati-hati", trust: 5, fear: 10, next: 1 },
+                        { text: "Memanggil mereka", trust: 10, fear: 5, romance: 5, next: 2 },
+                        { text: "Mencoba pergi segera", trust: -5, fear: 15, next: 3 }
+                    ]
+                },
+                {
+                    speaker: "Sosok Misterius",
+                    message: "Anda melangkah mendekat, dan cahaya bulan mengungkap seseorang yang cantik menghantui dengan mata merah. 'Tersesat, ya?' bisik mereka.",
+                    choices: [
+                        { text: "Saya hanya mencari perlindungan", trust: 5, next: 4 },
+                        { text: "Siapa Anda?", fear: 5, romance: 5, next: 5 },
+                        { text: "Mata Anda... bukan manusia", fear: 10, trust: -5, next: 6 }
+                    ]
+                },
+                {
+                    speaker: "Sosok Misterius",
+                    message: "Suara Anda bergema dalam kegelapan. 'Berani sekali mengumumkan diri,' kata mereka dengan senyum sedih. 'Saya Adrian. Ini rumah saya.'",
+                    choices: [
+                        { text: "Terima kasih atas perlindungannya", trust: 10, romance: 5, next: 7 },
+                        { text: "Ada yang tidak beres di sini", fear: 10, next: 8 },
+                        { text: "Anda tampak kesepian", romance: 10, trust: 5, next: 9 }
+                    ]
+                },
+                {
+                    speaker: "Adrian", 
+                    message: "Saat Anda berbalik untuk pergi, tangan dingin menyentuh bahu Anda dengan lembut. 'Badai akan membunuhmu di luar sana. Tolong, tinggal sampai fajar.'",
+                    choices: [
+                        { text: "Baiklah, tapi saya tidak percaya Anda", trust: -5, fear: 5, next: 10 },
+                        { text: "Mengapa Anda peduli pada orang asing?", romance: 5, next: 11 },
+                        { text: "Terima kasih atas kebaikan Anda", trust: 10, romance: 5, next: 12 }
+                    ]
+                }
+            ]
+        };
+
+        const endings = {
+            en: [
+                { title: "Eternal Love", description: "You and Adrian found true love that transcends death itself. Together forever in the shadows." },
+                { title: "Tragic Sacrifice", description: "Adrian sacrificed himself to save you from the ancient curse. You live, but your heart belongs to the darkness." },
+                { title: "Escape at Dawn", description: "You fled when the sun rose, leaving Adrian behind. Freedom came at the cost of a love that could have been." },
+                { title: "Cursed Together", description: "The curse claimed you both, but in darkness you found each other. A love born from tragedy." },
+                { title: "Broken Trust", description: "Fear destroyed what could have been beautiful. You escaped, but the memories haunt you forever." },
+                { title: "Redeemed Soul", description: "Your love broke Adrian's curse. Together you face a new dawn, free from the shadows of the past." },
+                { title: "The Hunter's End", description: "You discovered Adrian's true nature too late. The monster consumed everything, including your heart." },
+                { title: "Bittersweet Goodbye", description: "Understanding that love cannot conquer all, you part ways at dawn. Some love stories are meant to be brief." },
+                { title: "Dark Embrace", description: "You chose to join Adrian in darkness, finding that some forms of love require the ultimate sacrifice." },
+                { title: "Lost in Time", description: "The mansion claimed you both, trapped forever in a loop of that first stormy night. Time has no meaning in true love." }
+            ],
+            id: [
+                { title: "Cinta Abadi", description: "Anda dan Adrian menemukan cinta sejati yang melampaui kematian itu sendiri. Bersama selamanya dalam bayang-bayang." },
+                { title: "Pengorbanan Tragis", description: "Adrian mengorbankan dirinya untuk menyelamatkan Anda dari kutukan kuno. Anda hidup, tapi hati Anda milik kegelapan." },
+                { title: "Melarikan Diri di Fajar", description: "Anda melarikan diri saat matahari terbit, meninggalkan Adrian. Kebebasan datang dengan mengorbankan cinta yang mungkin terjadi." },
+                { title: "Terkutuk Bersama", description: "Kutukan menimpa kalian berdua, tapi dalam kegelapan kalian menemukan satu sama lain. Cinta yang lahir dari tragedi." },
+                { title: "Kepercayaan Hancur", description: "Ketakutan menghancurkan apa yang bisa menjadi indah. Anda melarikan diri, tapi kenangan itu menghantui selamanya." },
+                { title: "Jiwa Tertebus", description: "Cinta Anda mematahkan kutukan Adrian. Bersama kalian menghadapi fajar baru, bebas dari bayang-bayang masa lalu." },
+                { title: "Akhir Pemburu", description: "Anda menemukan sifat asli Adrian terlambat. Monster itu melahap segalanya, termasuk hati Anda." },
+                { title: "Perpisahan Pahit Manis", description: "Memahami bahwa cinta tidak bisa menaklukkan segalanya, kalian berpisah di fajar. Beberapa cerita cinta memang singkat." },
+                { title: "Pelukan Gelap", description: "Anda memilih bergabung dengan Adrian dalam kegelapan, menemukan bahwa beberapa bentuk cinta membutuhkan pengorbanan tertinggi." },
+                { title: "Tersesat dalam Waktu", description: "Mansion itu mengklaim kalian berdua, terjebak selamanya dalam putaran malam badai pertama. Waktu tidak berarti dalam cinta sejati." }
+            ]
+        };
+
+        function setLanguage(lang) {
+            gameState.language = lang;
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            updateUI();
+            checkSetupComplete();
+        }
+
+        function setGender(gender) {
+            gameState.gender = gender;
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            checkSetupComplete();
+        }
+
+        function checkSetupComplete() {
+            const startBtn = document.getElementById('start-btn');
+            if (gameState.language && gameState.gender) {
+                startBtn.disabled = false;
+                startBtn.style.opacity = '1';
+            }
+        }
+
+        function updateUI() {
+            if (!gameState.language) return;
+
+            const lang = gameState.language;
+            document.getElementById('gender-title').textContent = texts[lang].genderTitle;
+            document.getElementById('female-btn').textContent = texts[lang].female;
+            document.getElementById('male-btn').textContent = texts[lang].male;
+            document.getElementById('start-btn').textContent = texts[lang].startGame;
+            document.getElementById('trust-label').textContent = texts[lang].trustLabel;
+            document.getElementById('fear-label').textContent = texts[lang].fearLabel;
+            document.getElementById('romance-label').textContent = texts[lang].romanceLabel;
+            document.getElementById('restart-btn').textContent = texts[lang].playAgain;
+        }
+
+        function startGame() {
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            gameState.currentScene = 0;
+            displayScene(0);
+        }
+
+        function displayScene(sceneIndex) {
+            const scene = gameScenes[gameState.language][sceneIndex];
+            if (!scene) {
+                endGame();
+                return;
+            }
+
+            const chatContainer = document.getElementById('chat-container');
+            const choicesContainer = document.getElementById('choices');
+
+            // Add NPC message
+            setTimeout(() => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message npc';
+                messageDiv.innerHTML = `
+                    <div class="character-name">${scene.speaker}</div>
+                    <div>${scene.message}</div>
+                `;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                // Show choices
+                setTimeout(() => {
+                    choicesContainer.innerHTML = '';
+                    scene.choices.forEach((choice, index) => {
+                        const choiceBtn = document.createElement('button');
+                        choiceBtn.className = 'choice-btn';
+                        choiceBtn.textContent = choice.text;
+                        choiceBtn.onclick = () => makeChoice(choice, index);
+                        choicesContainer.appendChild(choiceBtn);
+                    });
+                }, 1000);
+            }, 500);
+        }
+
+        function makeChoice(choice, choiceIndex) {
+            // Update stats
+            gameState.trust += choice.trust || 0;
+            gameState.fear += choice.fear || 0;
+            gameState.romance += choice.romance || 0;
+
+            // Clamp values
+            gameState.trust = Math.max(0, Math.min(100, gameState.trust));
+            gameState.fear = Math.max(0, Math.min(100, gameState.fear));
+            gameState.romance = Math.max(0, Math.min(100, gameState.romance));
+
+            // Update UI
+            document.getElementById('trust-value').textContent = gameState.trust;
+            document.getElementById('fear-value').textContent = gameState.fear;
+            document.getElementById('romance-value').textContent = gameState.romance;
+
+            // Add player message
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message player';
+            messageDiv.innerHTML = `
+                <div class="character-name">${texts[gameState.language].playerName}</div>
+                <div>${choice.text}</div>
+            `;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Clear choices
+            document.getElementById('choices').innerHTML = '';
+
+            // Store choice
+            gameState.choices.push(choiceIndex);
+
+            // Continue to next scene or end game
+            if (choice.next !== undefined && gameScenes[gameState.language][choice.next]) {
+                setTimeout(() => displayScene(choice.next), 1000);
+            } else {
+                setTimeout(() => endGame(), 1000);
+            }
+        }
+
+        function endGame() {
+            // Calculate ending based on stats and choices
+            let endingIndex = 0;
+            
+            if (gameState.romance > 70 && gameState.trust > 60) {
+                endingIndex = 0; // Eternal Love
+            } else if (gameState.fear > 70 && gameState.romance > 50) {
+                endingIndex = 1; // Tragic Sacrifice
+            } else if (gameState.fear > 60 && gameState.trust < 40) {
+                endingIndex = 2; // Escape at Dawn
+            } else if (gameState.romance > 60 && gameState.fear > 50) {
+                endingIndex = 3; // Cursed Together
+            } else if (gameState.trust < 30 && gameState.fear > 70) {
+                endingIndex = 4; // Broken Trust
+            } else if (gameState.trust > 80 && gameState.romance > 60) {
+                endingIndex = 5; // Redeemed Soul
+            } else if (gameState.fear > 80) {
+                endingIndex = 6; // The Hunter's End
+            } else if (gameState.romance > 40 && gameState.trust > 40) {
+                endingIndex = 7; // Bittersweet Goodbye
+            } else if (gameState.romance > 80) {
+                endingIndex = 8; // Dark Embrace
+            } else {
+                endingIndex = 9; // Lost in Time
+            }
+
+            const ending = endings[gameState.language][endingIndex];
+            
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('ending-screen').classList.remove('hidden');
+            document.getElementById('ending-title').textContent = ending.title;
+            document.getElementById('ending-description').textContent = ending.description;
+        }
+
+        function restartGame() {
+            gameState = {
+                language: '',
+                gender: '',
+                trust: 50,
+                fear: 30,
+                romance: 20,
+                currentScene: 0,
+                playerName: '',
+                choices: []
+            };
+
+            document.getElementById('ending-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('chat-container').innerHTML = '';
+            document.getElementById('choices').innerHTML = '';
+            
+            // Reset buttons
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('start-btn').style.opacity = '0.5';
+
+            // Reset stats display
+            document.getElementById('trust-value').textContent = '50';
+            document.getElementById('fear-value').textContent = '30';
+            document.getElementById('romance-value').textContent = '20';
+        }
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>
