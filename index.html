@@ -1,26 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whispers in the Dark</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Donut Catcher - Premium Mobile Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --shadow: rgba(99, 102, 241, 0.25);
         }
 
         body {
-            font-family: 'Georgia', serif;
-            background: linear-gradient(135deg, #1a0a1a 0%, #2d1b2e 50%, #1a0a1a 100%);
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #e8d5d5;
-            position: relative;
             overflow: hidden;
+            touch-action: none;
+            position: relative;
         }
 
         body::before {
@@ -31,600 +46,636 @@
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 50%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 50%, rgba(75, 0, 130, 0.1) 0%, transparent 50%);
-            animation: pulse 8s ease-in-out infinite;
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+            pointer-events: none;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 0.8; }
-        }
-
-        .container {
-            max-width: 800px;
-            width: 90%;
-            background: rgba(20, 10, 20, 0.9);
-            border: 2px solid #8b4789;
-            border-radius: 15px;
-            box-shadow: 0 0 50px rgba(139, 71, 137, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.5);
+        #gameContainer {
             position: relative;
-            z-index: 1;
-            backdrop-filter: blur(10px);
+            width: 100vw;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 720px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 1px rgba(255,255,255,0.05),
+                0 50px 100px -20px rgba(0,0,0,0.5);
         }
 
-        .header {
-            text-align: center;
-            padding: 30px;
-            border-bottom: 2px solid #8b4789;
-            background: linear-gradient(180deg, rgba(139, 0, 0, 0.2) 0%, transparent 100%);
+        @media (min-width: 768px) {
+            #gameContainer {
+                border-radius: 24px;
+            }
         }
 
-        .title {
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--light);
+            z-index: 10;
+            padding: 40px;
+        }
+
+        #gameOverScreen {
+            display: none;
+        }
+
+        .logo {
+            font-size: 3.5em;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 10px 20px rgba(99, 102, 241, 0.5));
+        }
+
+        h1 {
             font-size: 2.5em;
-            color: #d8a7d8;
-            text-shadow: 0 0 20px rgba(216, 167, 216, 0.5), 0 0 40px rgba(139, 0, 0, 0.3);
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
             font-size: 1em;
-            color: #b8a0b8;
-            font-style: italic;
-        }
-
-        .game-area {
-            padding: 30px;
-            min-height: 400px;
-        }
-
-        .welcome-screen, .gender-screen, .chat-area, .ending-screen {
-            display: none;
-        }
-
-        .welcome-screen.active, .gender-screen.active, .chat-area.active, .ending-screen.active {
-            display: block;
-        }
-
-        .language-buttons, .gender-buttons, .choice-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        button {
-            padding: 15px 30px;
-            font-size: 1.1em;
-            background: linear-gradient(135deg, #4a2847 0%, #2a1a2a 100%);
-            color: #e8d5d5;
-            border: 2px solid #8b4789;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Georgia', serif;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        button:hover {
-            background: linear-gradient(135deg, #6a3867 0%, #3a2a3a 100%);
-            border-color: #b86bb8;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 71, 137, 0.4);
-        }
-
-        .welcome-text, .gender-text {
-            font-size: 1.2em;
-            line-height: 1.8;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-bottom: 40px;
             text-align: center;
-            color: #d5c5d5;
-        }
-
-        .chat-messages {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            border: 1px solid #5a3a5a;
-        }
-
-        .message {
-            margin-bottom: 20px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.npc {
-            text-align: left;
-        }
-
-        .message.player {
-            text-align: right;
-        }
-
-        .message-content {
-            display: inline-block;
-            padding: 12px 18px;
-            border-radius: 15px;
-            max-width: 80%;
             line-height: 1.6;
         }
 
-        .message.npc .message-content {
-            background: linear-gradient(135deg, #4a1a4a 0%, #2a0a2a 100%);
-            border: 1px solid #6a3a6a;
-            box-shadow: 0 2px 10px rgba(139, 0, 0, 0.3);
+        .btn {
+            font-size: 1.1em;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 
+                0 0 0 1px rgba(255,255,255,0.1),
+                0 10px 30px var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            margin: 8px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .message.player .message-content {
-            background: linear-gradient(135deg, #2a3a4a 0%, #1a2a3a 100%);
-            border: 1px solid #4a5a6a;
-            box-shadow: 0 2px 10px rgba(0, 100, 139, 0.3);
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
 
-        .npc-name {
-            font-weight: bold;
-            color: #d8a7d8;
-            margin-bottom: 5px;
-            font-size: 0.9em;
+        .btn:hover::before {
+            left: 100%;
         }
 
-        .choices {
+        .btn:active {
+            transform: scale(0.97);
+            box-shadow: 
+                0 0 0 1px rgba(255,255,255,0.1),
+                0 5px 15px var(--shadow);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        #scoreBoard {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 16px 24px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 
+                0 0 0 1px rgba(255,255,255,0.1),
+                0 10px 30px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+
+        .score-item {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            align-items: flex-start;
         }
 
-        .choice-btn {
-            padding: 12px 20px;
-            font-size: 1em;
+        .score-label {
+            font-size: 0.75em;
+            color: #94a3b8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .ending-screen {
-            text-align: center;
+        .score-value {
+            font-size: 1.75em;
+            font-weight: 700;
+            color: var(--light);
+            line-height: 1;
+            margin-top: 4px;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .ending-title {
-            font-size: 2em;
-            color: #d8a7d8;
-            margin-bottom: 20px;
-            text-shadow: 0 0 15px rgba(216, 167, 216, 0.5);
+        #finalScore {
+            font-size: 4em;
+            font-weight: 800;
+            margin: 30px 0;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .ending-text {
-            font-size: 1.2em;
-            line-height: 1.8;
-            margin-bottom: 30px;
-            color: #d5c5d5;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0;
+            width: 100%;
+            max-width: 300px;
         }
 
-        .restart-btn {
-            margin-top: 20px;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 1px solid #5a3a5a;
-        }
-
-        .stat {
-            text-align: center;
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .stat-label {
-            font-size: 0.9em;
-            color: #b8a0b8;
-            margin-bottom: 5px;
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-bottom: 8px;
         }
 
         .stat-value {
-            font-size: 1.3em;
-            color: #d8a7d8;
-            font-weight: bold;
+            font-size: 1.75em;
+            font-weight: 700;
+            color: var(--light);
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float-particle 3s infinite;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #8b4789;
-            border-radius: 10px;
+        @keyframes float-particle {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #b86bb8;
+        .combo-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: 800;
+            color: var(--accent);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+            animation: combo-pop 0.6s ease-out;
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+        }
+
+        @keyframes combo-pop {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -60%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -80%) scale(0.8);
+            }
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--primary);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="title">Whispers in the Dark</h1>
-            <p class="subtitle">A Romantic Horror Tale</p>
+    <div id="gameContainer">
+        <canvas id="canvas"></canvas>
+        <div id="scoreBoard">
+            <div class="score-item">
+                <span class="score-label">Score</span>
+                <span class="score-value" id="score">0</span>
+            </div>
+            <div class="score-item" style="align-items: flex-end;">
+                <span class="score-label">Best</span>
+                <span class="score-value" id="bestScore">0</span>
+            </div>
         </div>
+        <div class="progress-bar" id="progressBar"></div>
         
-        <div class="game-area">
-            <!-- Welcome Screen -->
-            <div class="welcome-screen active">
-                <p class="welcome-text">Choose your language / Pilih bahasa Anda</p>
-                <div class="language-buttons">
-                    <button onclick="setLanguage('en')">English</button>
-                    <button onclick="setLanguage('id')">Bahasa Indonesia</button>
+        <div class="overlay" id="startScreen">
+            <div class="particles" id="particles"></div>
+            <div class="logo">🐱</div>
+            <h1>Donut Catcher</h1>
+            <p class="subtitle">Catch falling treats and set high scores.<br>Swipe to move, don't let them fall!</p>
+            <button class="btn" id="startBtn">Start Game</button>
+        </div>
+
+        <div class="overlay" id="gameOverScreen">
+            <h1>Game Over</h1>
+            <div id="finalScore">0</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="finalScoreValue">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Best</div>
+                    <div class="stat-value" id="finalBestScore">0</div>
                 </div>
             </div>
-
-            <!-- Gender Selection Screen -->
-            <div class="gender-screen">
-                <p class="gender-text" id="genderPrompt"></p>
-                <div class="gender-buttons">
-                    <button onclick="setGender('female')" id="femaleBtn"></button>
-                    <button onclick="setGender('male')" id="maleBtn"></button>
-                </div>
-            </div>
-
-            <!-- Chat Area -->
-            <div class="chat-area">
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-label" id="trustLabel">Trust</div>
-                        <div class="stat-value" id="trustValue">50</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label" id="fearLabel">Fear</div>
-                        <div class="stat-value" id="fearValue">50</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label" id="loveLabel">Love</div>
-                        <div class="stat-value" id="loveValue">50</div>
-                    </div>
-                </div>
-                <div class="chat-messages" id="chatMessages"></div>
-                <div class="choices" id="choices"></div>
-            </div>
-
-            <!-- Ending Screen -->
-            <div class="ending-screen">
-                <h2 class="ending-title" id="endingTitle"></h2>
-                <p class="ending-text" id="endingText"></p>
-                <button class="restart-btn" onclick="restartGame()" id="restartBtn">Restart</button>
-            </div>
+            <button class="btn" id="restartBtn">Play Again</button>
+            <button class="btn btn-secondary" id="menuBtn">Main Menu</button>
         </div>
     </div>
 
     <script>
-        let language = 'en';
-        let playerGender = '';
-        let currentScene = 0;
-        let stats = {
-            trust: 50,
-            fear: 50,
-            love: 50
-        };
-        let choices = [];
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const scoreEl = document.getElementById('score');
+        const bestScoreEl = document.getElementById('bestScore');
+        const finalScoreEl = document.getElementById('finalScore');
+        const finalScoreValue = document.getElementById('finalScoreValue');
+        const finalBestScore = document.getElementById('finalBestScore');
+        const progressBar = document.getElementById('progressBar');
 
-        const translations = {
-            en: {
-                genderPrompt: "Who are you in this story?",
-                female: "Female",
-                male: "Male",
-                trustLabel: "Trust",
-                fearLabel: "Fear",
-                loveLabel: "Love",
-                restart: "Restart Game"
-            },
-            id: {
-                genderPrompt: "Siapa Anda dalam cerita ini?",
-                female: "Perempuan",
-                male: "Laki-laki",
-                trustLabel: "Kepercayaan",
-                fearLabel: "Ketakutan",
-                loveLabel: "Cinta",
-                restart: "Mulai Ulang"
+        let gameWidth, gameHeight;
+        let player, donuts, score, bestScore, gameRunning, touchX, combo, lastCatchTime;
+        let particles = [];
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 3 + 's';
+                particle.style.animationDuration = (2 + Math.random() * 2) + 's';
+                particlesContainer.appendChild(particle);
             }
-        };
+        }
 
-        const story = {
-            en: {
-                scenes: [
-                    {
-                        npc: "???",
-                        text: "You wake up in an abandoned mansion. Rain pounds against broken windows. A figure stands in the shadows...",
-                        choices: [
-                            { text: "Who are you?", next: 1, stats: { fear: 5 } },
-                            { text: "Where am I?", next: 2, stats: { trust: -5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "My name is Adrian. I've been waiting for you... for so long. You're not afraid of me, are you?",
-                        choices: [
-                            { text: "I'm not afraid", next: 3, stats: { trust: 10, love: 10 } },
-                            { text: "Stay away from me!", next: 4, stats: { fear: 15, trust: -10 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "You're in my home. I brought you here because... I couldn't bear the loneliness anymore.",
-                        choices: [
-                            { text: "Let me go", next: 4, stats: { fear: 10 } },
-                            { text: "You seem sad", next: 5, stats: { love: 10, trust: 5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "Good. Because we're bound now, you and I. *He steps closer, moonlight revealing his pale, ethereal face* I died here 100 years ago, cursed to walk these halls. But you... you can see me.",
-                        choices: [
-                            { text: "This is impossible!", next: 6, stats: { fear: 15 } },
-                            { text: "Tell me your story", next: 7, stats: { trust: 15, love: 5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*His eyes flash with hurt and anger* You reject me like she did... Maybe you should join me in eternal darkness. *The room grows colder*",
-                        choices: [
-                            { text: "I'm sorry, I was scared", next: 7, stats: { trust: 10, love: 5, fear: 5 } },
-                            { text: "Try to run", next: 8, stats: { fear: 20, trust: -20 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*His expression softens* Loneliness is a curse worse than death. I've watched the world change through these windows, unable to touch, to feel... until now. When you're near, I feel almost alive again.",
-                        choices: [
-                            { text: "How can I help you?", next: 9, stats: { love: 15, trust: 10 } },
-                            { text: "This is too much", next: 10, stats: { fear: 10, love: -5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*Shadows swirl around you* Fear is natural. But impossibility? *He touches your hand, his touch cold but gentle* Does this feel impossible?",
-                        choices: [
-                            { text: "No... it feels real", next: 9, stats: { love: 10, trust: 10, fear: -5 } },
-                            { text: "You're a monster!", next: 8, stats: { fear: 20, trust: -20, love: -10 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*His eyes filled with centuries of sorrow* I was betrayed by the one I loved. She bound me here with a curse, promising I'd never know love again. But you broke through somehow...",
-                        choices: [
-                            { text: "We can break this curse together", next: 11, stats: { love: 20, trust: 15 } },
-                            { text: "Tell me about the curse", next: 12, stats: { trust: 10, fear: 5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*The mansion begins to crumble* RUN! The curse... it's pulling me back! *Dark tendrils wrap around him* I'm sorry... I should never have hoped...",
-                        choices: [
-                            { text: "Reach for him anyway", next: 13, stats: { love: 15, fear: 10 } },
-                            { text: "Escape while you can", next: 14, stats: { fear: -10, trust: -20, love: -15 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*His voice echoes as he moves closer* There's a way to break my curse... but it requires a sacrifice. True love's willing surrender. Would you... stay with me? Forever?",
-                        choices: [
-                            { text: "I'll stay with you", next: 15, stats: { love: 30, trust: 20 } },
-                            { text: "There must be another way", next: 16, stats: { trust: 10, fear: 5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*He turns away* I understand. I'm asking too much. Perhaps it's better if you leave. I'll open the door for you. *His voice breaks* I'll be alone again, but you'll be safe.",
-                        choices: [
-                            { text: "Wait, I want to understand", next: 12, stats: { love: 10, trust: 15 } },
-                            { text: "Leave through the door", next: 17, stats: { fear: -10, love: -10 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*His ethereal form glows brighter* Together... Yes! The curse feeds on isolation, on broken hearts. But with you believing in me, in us... I can feel it weakening!",
-                        choices: [
-                            { text: "Kiss him", next: 18, stats: { love: 25 } },
-                            { text: "Take his hand", next: 19, stats: { love: 20, trust: 15 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*The darkness closes in* The curse requires a soul anchored by love. She cursed me because I rejected her obsession. Only someone who loves freely can break it... or share my fate.",
-                        choices: [
-                            { text: "I choose to break it with you", next: 18, stats: { love: 25, trust: 20 } },
-                            { text: "We need more time", next: 20, stats: { fear: 10, trust: 5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*You grab his hand as darkness consumes you both* No! Why did you— *His eyes widen* You're... warm. Your touch is breaking through! But the curse... it's taking you too!",
-                        choices: [
-                            { text: "I won't let you go!", next: 21, stats: { love: 30 } },
-                            { text: "Fight to free yourself", next: 22, stats: { fear: 15, love: -10 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*You run into the storm. Behind you, the mansion crumbles. Adrian's anguished cry echoes through the night* I'll wait... forever if I must...",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*His form becomes more solid as you speak* You would... give up everything? Your life, your world? *Tears form in his eyes* I've waited so long to hear those words.",
-                        choices: [
-                            { text: "Kiss him to seal your fate", next: 23, stats: { love: 35 } },
-                            { text: "Hesitate at the last moment", next: 24, stats: { fear: 15, trust: -10 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*Shadows writhe around you* There IS another way... but it's dangerous. An artifact in the basement can break any curse, but it requires facing your deepest fears. Will you try?",
-                        choices: [
-                            { text: "Let's do it together", next: 25, stats: { trust: 20, love: 15 } },
-                            { text: "It's too risky", next: 26, stats: { fear: 15, love: -5 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*The door closes behind you. Freedom... but at what cost? Adrian's face haunts your dreams. Sometimes, in mirrors, you see him watching, waiting.*",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*Your lips meet his cold ones. Suddenly, warmth floods through both of you. Light explodes from where you touch. The curse shatters!* I'm... I'm free! We're free! Together!",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*You take his hand and the mansion transforms. Darkness fades to light. Flowers bloom on dead vines.* The curse... it's breaking! Your trust, your love... it was the key all along!",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*Time stretches. Days? Weeks? You're trapped in the mansion, searching for answers that seem to slip away. Adrian grows more desperate, more possessive.*",
-                        choices: [
-                            { text: "Confront him about his behavior", next: 27, stats: { trust: 10, fear: 10 } },
-                            { text: "Look for escape secretly", next: 28, stats: { fear: 15, trust: -15 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*Light and darkness battle around you. Your love creates warmth, but the curse fights back. You're caught between worlds, between life and death, bound together forever in twilight.*",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*You pull away but too late. The curse grabs you. You feel yourself fading, becoming like him—trapped but together. He holds you as you transform.* I'm sorry... at least we'll have eternity.",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*The kiss breaks the curse completely. He becomes fully human again, warm and alive. But as the sun rises, you realize... you gave up your mortality. You're the ghost now. He's free, but the price...*",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*You hesitate. In that moment of doubt, the curse seizes the opportunity. Adrian is pulled into deeper darkness. 'Your doubt condemned me,' he whispers before vanishing. The mansion collapses. You escape, but his voice haunts you forever.*",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*In the basement, you face illusions of your greatest fears. But Adrian is beside you, fighting them together. You reach the artifact—a mirror showing true love. You both reach for it...*",
-                        choices: [
-                            { text: "Break the mirror together", next: 29, stats: { love: 30, trust: 25 } },
-                            { text: "Look into it first", next: 30, stats: { trust: 15, fear: 10 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*You back away from the basement door. Adrian's hope dies in his eyes. 'I understand,' he says coldly. 'Leave. I release you.' But as you go, you hear him whisper: 'I'll always love you.'*",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*'You're right,' he says, tears streaming. 'I'm losing myself to the curse again. Help me fight it, or leave before I hurt you.' His form flickers between man and monster.*",
-                        choices: [
-                            { text: "Stay and fight for him", next: 25, stats: { love: 20, trust: 20 } },
-                            { text: "Leave for your safety", next: 17, stats: { fear: 10, love: -15 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*He catches you sneaking out. 'You were going to leave me... again. Just like her.' The curse takes over completely. He's no longer the man you knew. Run!*",
-                        choices: [
-                            { text: "Try to reason with him", next: 31, stats: { love: 10, fear: 20 } },
-                            { text: "Run away", next: 14, stats: { fear: 25, love: -20 } }
-                        ]
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*The mirror shatters. The curse explodes outward and dissipates. You're both thrown back, then... silence. Adrian is alive, warm, breathing. You're still yourself. Free. Together. Truly free.*",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*In the mirror, you see the truth: Adrian was cursed because he WAS a monster. But your love changed him. The mirror shows his redemption. The curse breaks, but you're bound by choice now—choosing love over fear.*",
-                        choices: []
-                    },
-                    {
-                        npc: "Adrian",
-                        text: "*'Please,' he begs, fighting the curse. 'Remember who I am, not what I'm becoming!' Your words cut through. Light breaks through darkness. He collapses, human again, freed by your unwavering faith in him.*",
-                        choices: []
+        createParticles();
+
+        function resizeCanvas() {
+            gameWidth = canvas.offsetWidth;
+            gameHeight = canvas.offsetHeight;
+            canvas.width = gameWidth;
+            canvas.height = gameHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        bestScore = parseInt(localStorage.getItem('donutBestScore')) || 0;
+        bestScoreEl.textContent = bestScore;
+
+        function init() {
+            player = {
+                x: gameWidth / 2,
+                y: gameHeight - 100,
+                width: 60,
+                height: 60,
+                speed: 8,
+                trail: []
+            };
+
+            donuts = [];
+            score = 0;
+            combo = 0;
+            lastCatchTime = 0;
+            gameRunning = false;
+            touchX = null;
+            particles = [];
+            
+            updateScore();
+        }
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            gameRunning = true;
+            init();
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            finalScoreEl.textContent = score;
+            finalScoreValue.textContent = score;
+            
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('donutBestScore', bestScore);
+            }
+            
+            bestScoreEl.textContent = bestScore;
+            finalBestScore.textContent = bestScore;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        function updateScore() {
+            scoreEl.textContent = score;
+            const progress = Math.min((score % 10) * 10, 100);
+            progressBar.style.width = progress + '%';
+        }
+
+        function showCombo(x, y) {
+            if (combo >= 3) {
+                const comboEl = document.createElement('div');
+                comboEl.className = 'combo-indicator';
+                comboEl.textContent = `${combo}x COMBO!`;
+                comboEl.style.left = x + 'px';
+                comboEl.style.top = y + 'px';
+                document.getElementById('gameContainer').appendChild(comboEl);
+                setTimeout(() => comboEl.remove(), 600);
+            }
+        }
+
+        function createDonut() {
+            const types = ['🍩', '🍪', '🧁', '🍰', '🎂', '🍭', '🍬'];
+            const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
+            donuts.push({
+                x: Math.random() * (gameWidth - 60) + 30,
+                y: -60,
+                width: 50,
+                height: 50,
+                speed: 2.5 + Math.random() * 1.5 + (score * 0.05),
+                emoji: types[Math.floor(Math.random() * types.length)],
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.1
+            });
+        }
+
+        function createParticle(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8 - 2,
+                    life: 1,
+                    color: color
+                });
+            }
+        }
+
+        function drawPlayer() {
+            player.trail.push({x: player.x, y: player.y, life: 1});
+            if (player.trail.length > 5) player.trail.shift();
+            
+            player.trail.forEach((point, i) => {
+                point.life -= 0.2;
+                ctx.globalAlpha = point.life * 0.3;
+                ctx.font = `${player.width * (0.7 + i * 0.06)}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🐱', point.x, point.y);
+            });
+            
+            ctx.globalAlpha = 1;
+            ctx.font = `${player.width}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.shadowColor = 'rgba(99, 102, 241, 0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fillText('🐱', player.x, player.y);
+            ctx.shadowBlur = 0;
+        }
+
+        function drawDonuts() {
+            donuts.forEach(donut => {
+                ctx.save();
+                ctx.translate(donut.x + donut.width/2, donut.y + donut.height/2);
+                ctx.rotate(donut.rotation);
+                
+                ctx.shadowColor = donut.color;
+                ctx.shadowBlur = 15;
+                
+                ctx.font = `${donut.width}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(donut.emoji, 0, 0);
+                
+                ctx.restore();
+            });
+        }
+
+        function drawParticles() {
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.3;
+                p.life -= 0.02;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    return;
+                }
+                
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawBackground() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, gameHeight);
+            gradient.addColorStop(0, '#1e293b');
+            gradient.addColorStop(1, '#0f172a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, gameWidth, gameHeight);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 137.5) % gameWidth;
+                const y = (i * 234.7) % gameHeight;
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function update() {
+            if (touchX !== null) {
+                player.x += (touchX - player.x) * 0.15;
+            }
+
+            player.x = Math.max(player.width/2, Math.min(gameWidth - player.width/2, player.x));
+
+            donuts.forEach((donut, index) => {
+                donut.y += donut.speed;
+                donut.rotation += donut.rotationSpeed;
+
+                if (donut.y > gameHeight + 50) {
+                    donuts.splice(index, 1);
+                    combo = 0;
+                    gameOver();
+                }
+
+                const dist = Math.hypot(donut.x + donut.width/2 - player.x, donut.y + donut.height/2 - player.y);
+                if (dist < (player.width/2 + donut.width/2) * 0.8) {
+                    createParticle(donut.x + donut.width/2, donut.y + donut.height/2, donut.color);
+                    donuts.splice(index, 1);
+                    score++;
+                    
+                    const now = Date.now();
+                    if (now - lastCatchTime < 1000) {
+                        combo++;
+                        showCombo(player.x, player.y - 50);
+                    } else {
+                        combo = 1;
                     }
-                ],
-                endings: [
-                    { // Ending 0: Abandoned Him
-                        title: "Ending: Eternal Solitude",
-                        text: "You escaped the mansion, but Adrian's sorrowful face haunts your every dream. You're free, but guilt chains your heart. In quiet moments, you wonder... what if you had stayed? Some say the mansion still stands, waiting. They say a lonely figure watches from the window. Forever.",
-                        condition: (s) => s.love < 30 && s.trust < 30 && s.fear > 40
-                    },
-                    { // Ending 1: Regret
-                        title: "Ending: Hollow Freedom",
-                        text: "You left through that door and never looked back. But freedom tastes bitter. In mirrors and shadows, you glimpse him—always watching, never judging. You're alive, but something essential died in that mansion. The piece of your heart that dared to love the impossible.",
-                        condition: (s) => s.love < 40 && s.fear < 50 && s.trust < 40
-                    },
-                    { // Ending 2: Trapped Together
-                        title: "Ending: Eternal Twilight",
-                        text: "The curse didn't break—it expanded. Now you both exist between worlds, neither alive nor dead. But you're together. In the twilight realm, you have each other. Forever is a long time, but with him, it doesn't seem so frightening. Love transcends mortality.",
-                        condition: (s) => s.love > 50 && s.trust > 40 && s.fear > 30
-                    },
-                    { // Ending 3: True Freedom
-                        title: "Ending: Love's Triumph",
-                        text: "The curse shattered like glass. Adrian is alive—truly alive. His heart beats, his skin is warm. You did the impossible together. Hand in hand, you walk out of the mansion into the sunrise. A new life awaits. Love conquered death itself.",
-                        condition: (s) => s.love > 70 && s.trust > 60 && s.fear < 40
-                    },
-                    { // Ending 4: Sacrifice
-                        title: "Ending: The Trade",
-                        text: "He lives. You... exist. You traded your mortality for his freedom. Now you're the ghost in the mansion, watching him live the life you gave him. He visits every day, brings you flowers, talks for hours. It hurts beautifully. Your sacrifice was love's ultimate expression.",
-                        condition: (s) => s.love > 80 && s.trust > 50
-                    },
-                    { // Ending 5: Redemption
-                        title: "Ending: Love's Redemption",
-                        text: "The mirror revealed the truth—Adrian wasn't innocent, but your love redeemed him. The curse breaks not through magic, but through genuine transformation. He's free because you believed in who he could become, not who he was. Together, you walk into an uncertain but hopeful future.",
-                        condition: (s) => s.love > 60 && s.trust > 70 && s.fear < 30
-                    },
-                    { // Ending 6: Doubt's Price
-                        title: "Ending: What Could Have Been",
-                        text: "Your hesitation cost everything. Adrian vanished into darkness, and the mansion collapsed. You survived, but the weight of 'what if' crushes you daily. In your nightmares, he asks: 'Why didn't you believe?' You have no answer. Some chances come only once.",
-                        condition: (s) => s.love < 60 && s.trust < 50 && s.fear > 35
-                    },
-                    { // Ending 7: Monster Unleashed
-                        title: "Ending: The Curse Wins",
-                        text: "The curse consumed him completely. The Adrian you knew is gone, replaced by a creature of shadow and rage. You barely escaped with your life. Sometimes, on stormy nights, you hear him howling your name. A reminder that some loves destroy rather than save.",
-                        condition: (s) => s.fear > 60 && s.trust < 30
-                    },
-                    { // Ending 8: Mutual Understanding
-                        title: "Ending: Beautiful Friendship",
-                        text: "You broke the curse, not with romance, but with understanding. Adrian is free, and so are you. You're friends bound by an extraordinary experience. No kiss, no eternal vow—just two souls who saw each other truly. Sometimes, that's the most powerful magic of all.",
-                        condition: (s) => s.trust > 60 && s.love < 60 && s.fear < 40
-                    },
-                    { // Ending 9: Faith Unshaken
-                        title: "Ending: Unwavering Faith",
-                        text: "When Adrian became a monster, you didn't flee. You spoke his name, reminded him who he was. Your faith never wavered. That faith broke the curse more surely than any spell. He's free because you never stopped believing. Love is seeing someone at their worst and choosing them anyway.",
-                        condition: (s) => s.love > 65 && s.trust > 80 && s.fear > 45
-                    }
-                ]
-            },
-            id: {
-                scenes: [
-                    {
-                        npc: "???",
+                    lastCatchTime = now;
+                    
+                    updateScore();
+                }
+            });
+
+            if (Math.random() < 0.015 + score * 0.0001) {
+                createDonut();
+            }
+        }
+
+        function draw() {
+            drawBackground();
+            drawParticles();
+            drawDonuts();
+            drawPlayer();
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (gameRunning) {
+                const rect = canvas.getBoundingClientRect();
+                touchX = e.clientX - rect.left;
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (gameRunning) {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                touchX = touch.clientX - rect.left;
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            touchX = null;
+        });
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        menuBtn.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+            init();
+        });
+
+        init();
+    </script>
+</body>
+</html>
